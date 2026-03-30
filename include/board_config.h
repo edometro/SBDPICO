@@ -22,11 +22,23 @@ constexpr uint32_t kSbdbtBaud = SBDBT_UART_BAUD;
 
 // Pico-PIO-USB host pins: DM is expected at DP + 1.
 #ifndef PIO_USB_DP_PIN
-#define PIO_USB_DP_PIN 16
+#define PIO_USB_DP_PIN 26
 #endif
 constexpr uint8_t kUsbDpPin = PIO_USB_DP_PIN;
 
-// Diagnostic heartbeat pin (on-board LED on many RP2040 boards is GPIO25).
-constexpr uint8_t kHeartbeatLedPin = 25;
+// USB-A activity LED (XIAO RP2040 RGB LED R channel).
+#ifndef USB_ACTIVITY_LED_PIN
+#define USB_ACTIVITY_LED_PIN 17
+#endif
+constexpr uint8_t kUsbActivityLedPin = USB_ACTIVITY_LED_PIN;
+
+// Force USER_LED_B off (XIAO RP2040 RGB LED B channel).
+#ifndef USER_LED_B_PIN
+#define USER_LED_B_PIN 25
+#endif
+constexpr uint8_t kUserLedBPin = USER_LED_B_PIN;
+
+// XIAO RP2040 RGB LED is active-low: 0=ON, 1=OFF.
+constexpr bool kUserLedActiveLow = true;
 
 }  // namespace board_config

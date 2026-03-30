@@ -20,8 +20,15 @@ ControllerState g_state{};
 uint8_t g_hid_addr = 0;
 uint8_t g_hid_instance = 0;
 absolute_time_t g_last_report = {};
+absolute_time_t g_last_usb_activity_blink = {};
+bool g_usb_activity_led_on = false;
 
 void log_line(const char* msg) { printf("%s\n", msg); }
+
+void set_led_state(uint8_t pin, bool on) {
+  const bool level = board_config::kUserLedActiveLow ? !on : on;
+  gpio_put(pin, level);
+}
 
 void setup_uart() {
   uart_init(uart0, board_config::kSbdbtBaud);
@@ -35,17 +42,39 @@ void send_sbdbt() {
   uart_write_blocking(uart0, packet, sizeof(packet));
 }
 
-void setup_heartbeat() {
-  gpio_init(board_config::kHeartbeatLedPin);
-  gpio_set_dir(board_config::kHeartbeatLedPin, GPIO_OUT);
-  gpio_put(board_config::kHeartbeatLedPin, 0);
+void setup_usb_activity_led() {
+  gpio_init(board_config::kUsbActivityLedPin);
+  gpio_set_dir(board_config::kUsbActivityLedPin, GPIO_OUT);
+  set_led_state(board_config::kUsbActivityLedPin, false);
 }
 
-void blink_heartbeat() {
-  static uint32_t ticks = 0;
-  ++ticks;
-  if ((ticks % 25000u) == 0u) {
-    gpio_xor_mask(1u << board_config::kHeartbeatLedPin);
+void setup_user_led_b_off() {
+  gpio_init(board_config::kUserLedBPin);
+  gpio_set_dir(board_config::kUserLedBPin, GPIO_OUT);
+  set_led_state(board_config::kUserLedBPin, false);
+}
+
+void update_usb_activity_led() {
+  if (!g_state.connected) {
+    if (g_usb_activity_led_on) {
+      set_led_state(board_config::kUsbActivityLedPin, false);
+      g_usb_activity_led_on = false;
+    }
+    return;
+  }
+
+  if (absolute_time_diff_us(g_last_report, get_absolute_time()) > 300000) {
+    if (g_usb_activity_led_on) {
+      set_led_state(board_config::kUsbActivityLedPin, false);
+      g_usb_activity_led_on = false;
+    }
+    return;
+  }
+
+  if (absolute_time_diff_us(g_last_usb_activity_blink, get_absolute_time()) > 100000) {
+    g_usb_activity_led_on = !g_usb_activity_led_on;
+    set_led_state(board_config::kUsbActivityLedPin, g_usb_activity_led_on);
+    g_last_usb_activity_blink = get_absolute_time();
   }
 }
 
@@ -61,6 +90,8 @@ void tuh_umount_cb(uint8_t dev_addr) {
     g_hid_addr = 0;
     g_hid_instance = 0;
     memset(&g_state, 0, sizeof(g_state));
+    set_led_state(board_config::kUsbActivityLedPin, false);
+    g_usb_activity_led_on = false;
   }
 }
 
@@ -87,6 +118,8 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance) {
     g_hid_addr = 0;
     g_hid_instance = 0;
     memset(&g_state, 0, sizeof(g_state));
+    set_led_state(board_config::kUsbActivityLedPin, false);
+    g_usb_activity_led_on = false;
   }
 }
 
@@ -111,7 +144,8 @@ int main() {
   sleep_ms(200);
 
   setup_uart();
-  setup_heartbeat();
+  setup_user_led_b_off();
+  setup_usb_activity_led();
   log_line("SBDBT Pico-PIO-USB bring-up start");
 
   pio_usb_configuration_t pio_cfg = PIO_USB_DEFAULT_CONFIG;
@@ -122,7 +156,7 @@ int main() {
   if (!tuh_init(1)) {
     log_line("[USB] tuh_init failed");
     while (true) {
-      blink_heartbeat();
+      update_usb_activity_led();
       sleep_ms(1);
     }
   }
@@ -131,7 +165,7 @@ int main() {
 
   while (true) {
     tuh_task();
-    blink_heartbeat();
+    update_usb_activity_led();
 
     if (g_state.connected && absolute_time_diff_us(g_last_report, get_absolute_time()) > 3000000) {
       // Keep alive packet every 3s even without new report.

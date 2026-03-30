@@ -1,6 +1,6 @@
-# SBDPICO (Pico SDK + Pico-PIO-USB)
+# SBDPICO for XIAO RP2350 (Pico SDK + Pico-PIO-USB)
 
-XIAO RP2040 を想定した、`Pico-PIO-USB` ベースの SBDBT 互換ファームウェアです。  
+XIAO RP2350 を想定した、`Pico-PIO-USB` ベースの SBDBT 互換ファームウェアです。  
 USB HID コントローラ（まずは DS4 有線想定）の入力を受け、SBDBT 形式の 8byte パケットを UART で出力します。
 
 ## 構成
@@ -25,7 +25,9 @@ USB HID コントローラ（まずは DS4 有線想定）の入力を受け、S
 ## ビルド
 
 ```bash
-cmake -S . -B build -DPICO_SDK_PATH=$HOME/pico-sdk
+cmake -S . -B build \
+  -DPICO_SDK_PATH=$HOME/pico-sdk \
+  -DPICO_BOARD=seeed_xiao_rp2350
 cmake --build build -j
 ```
 
@@ -41,21 +43,23 @@ cmake --build build -j
 - SYSCLK: `120MHz`
 - SBDBT UART: `uart0`, `TX=GPIO0`, `RX=GPIO1`, `115200bps`
 - Pico-PIO-USB D+: `GPIO26`（D- は `GPIO27`）
-- USB-A 活動LED: `GPIO17`（受信中点滅、未接続/無通信時OFF）
+- USB-A 活動LED: `GPIO25`（受信中点滅、未接続/無通信時OFF）
 
 必要なら CMake キャッシュで変更できます:
 
 ```bash
 cmake -S . -B build \
   -DPICO_SDK_PATH=~$HOME/pico-sdk \
+  -DPICO_BOARD=seeed_xiao_rp2350 \
   -DPIO_USB_DP_PIN=26 \
   -DSBDBT_UART_TX_PIN=0 \
   -DSBDBT_UART_RX_PIN=1 \
   -DSBDBT_UART_BAUD=115200 \
-  -DUSB_ACTIVITY_LED_PIN=17
+  -DUSB_ACTIVITY_LED_PIN=25 \
+  -DUSER_LED_ACTIVE_LOW=0
 ```
 
-## 配線（XIAO RP2040）
+## 配線（XIAO RP2350）
 
 - USB-C: 書き込み/電源供給（本ファームの `stdio` は USB-C CDC を使いません）
 - SBDBT UART:
@@ -67,12 +71,11 @@ cmake -S . -B build \
   - `GPIO27 (D1 Analog)` -> USB D-
   - `VBUS 5V` と `GND` はUSB-A側に適切に供給/共通化
 - 状態表示LED:
-  - `GPIO17 (USER_LED_R)` を活動表示に使用
+  - `GPIO25 (USER_LED)` を活動表示に使用
   - HIDレポート受信中: 点滅
   - 未接続または通信停止時: 消灯
-  - `GPIO25 (USER_LED_B)` は明示的に消灯固定
 
 ## 注意
 
-- XIAO RP2040 では USB ホスト動作に配線品質・電源余裕が影響します。
+- XIAO RP2350 でも USB ホスト動作は配線品質・電源余裕の影響を受けます。
 - 列挙不安定時は、USB ログ（`printf`）を見ながら電源/配線とソフト設定を切り分けてください。

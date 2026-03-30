@@ -48,12 +48,6 @@ void setup_usb_activity_led() {
   set_led_state(board_config::kUsbActivityLedPin, false);
 }
 
-void setup_user_led_b_off() {
-  gpio_init(board_config::kUserLedBPin);
-  gpio_set_dir(board_config::kUserLedBPin, GPIO_OUT);
-  set_led_state(board_config::kUserLedBPin, false);
-}
-
 void update_usb_activity_led() {
   if (!g_state.connected) {
     if (g_usb_activity_led_on) {
@@ -144,7 +138,6 @@ int main() {
   sleep_ms(200);
 
   setup_uart();
-  setup_user_led_b_off();
   setup_usb_activity_led();
   log_line("SBDBT Pico-PIO-USB bring-up start");
 

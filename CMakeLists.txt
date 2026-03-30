@@ -17,7 +17,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(PICO_BOARD "pico" CACHE STRING "Target Pico board (XIAO RP2040 uses RP2040-compatible config)")
+set(PICO_BOARD "seeed_xiao_rp2350" CACHE STRING "Target board")
 
 pico_sdk_init()
 
@@ -37,7 +37,8 @@ set(PIO_USB_DP_PIN 26 CACHE STRING "PIO-USB D+ GPIO pin (D- is D+1 for DPDM)")
 set(SBDBT_UART_TX_PIN 0 CACHE STRING "SBDBT UART TX GPIO pin")
 set(SBDBT_UART_RX_PIN 1 CACHE STRING "SBDBT UART RX GPIO pin")
 set(SBDBT_UART_BAUD 115200 CACHE STRING "SBDBT UART baudrate")
-set(USB_ACTIVITY_LED_PIN 17 CACHE STRING "USB-A activity LED GPIO pin")
+set(USB_ACTIVITY_LED_PIN 25 CACHE STRING "USB-A activity LED GPIO pin")
+set(USER_LED_ACTIVE_LOW 0 CACHE STRING "1 for active-low LED, 0 for active-high")
 
 add_executable(sbdbt_pio_usb
   src/main.cpp
@@ -62,6 +63,7 @@ target_compile_definitions(sbdbt_pio_usb PRIVATE
   SBDBT_UART_RX_PIN=${SBDBT_UART_RX_PIN}
   SBDBT_UART_BAUD=${SBDBT_UART_BAUD}
   USB_ACTIVITY_LED_PIN=${USB_ACTIVITY_LED_PIN}
+  USER_LED_ACTIVE_LOW=${USER_LED_ACTIVE_LOW}
 )
 
 target_compile_options(sbdbt_pio_usb PRIVATE -Wall -Wextra)

@@ -18,15 +18,14 @@ USB HID コントローラ（まずは DS4 有線想定）の入力を受け、S
 
 ## 前提
 
-- pico-sdk: `/home/edometro/pico-sdk`（または `PICO_SDK_PATH` 環境変数）
+- pico-sdk: `$HOME/pico-sdk`（または `PICO_SDK_PATH` 環境変数）
 - CMake / ARM GCC toolchain
 - GitHub から `Pico-PIO-USB` を取得できるネットワーク
 
 ## ビルド
 
 ```bash
-cd "/home/edometro/ドキュメント/PicoSDK/SBDPICO"
-cmake -S . -B build -DPICO_SDK_PATH=/home/edometro/pico-sdk
+cmake -S . -B build -DPICO_SDK_PATH=$HOME/pico-sdk
 cmake --build build -j
 ```
 
@@ -47,7 +46,7 @@ cmake --build build -j
 
 ```bash
 cmake -S . -B build \
-  -DPICO_SDK_PATH=/home/edometro/pico-sdk \
+  -DPICO_SDK_PATH=~$HOME/pico-sdk \
   -DPIO_USB_DP_PIN=16 \
   -DSBDBT_UART_TX_PIN=0 \
   -DSBDBT_UART_RX_PIN=1 \
